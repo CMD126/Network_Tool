@@ -1,179 +1,155 @@
-# Network tool Diagnostic
+# Network Tool Pro
 
-A comprehensive bash-based network diagnostic and troubleshooting tool with an interactive menu interface.
+A powerful bash-based network diagnostic suite for daily use, with an interactive menu covering interface analysis, DNS, scanning, web/TLS inspection, and live monitoring.
 
 ## Features
 
-- **Network Interface Analysis**: View active interfaces, IP addresses, and statistics
-- **Connectivity Testing**: Ping hosts with customizable packet counts
-- **Port Scanning**: Basic port scanning using nmap (SYN scan as root, TCP connect as user)
-- **Routing Information**: Display routing table, default gateway, and ARP cache
-- **Path Tracing**: Traceroute to identify network path and latency
-- **DNS Diagnostics**: DNS resolution and nameserver configuration
-- **Speed Testing**: Simple download speed measurement
-- **Connection Monitoring**: Active connections and network statistics
-- **Logging**: Comprehensive logging of all operations
+| Category | Capabilities |
+|----------|-------------|
+| **Quick** | Dashboard — public IP, interface, gateway, DNS, connectivity and open ports at a glance |
+| **Network** | Interface info, routing table, ARP, local host discovery |
+| **Connectivity** | Ping, traceroute, MTU discovery |
+| **DNS** | Full record lookup (A/AAAA/MX/NS/TXT), reverse DNS, whois |
+| **Scanning** | Port scan, service/OS version scan, vulnerability check (NSE) |
+| **Web & TLS** | HTTP headers/stats, SSL certificate expiry + SANs, IP geolocation |
+| **Monitoring** | Active connections, listening ports, speed test, live bandwidth (real-time) |
 
 ## Requirements
 
-### Essential Tools
+### Essential
 
-The script requires standard networking utilities typically found on Linux systems:
-
-- `ip` (iproute2 package)
+- `ip` (iproute2)
 - `ping`
 - `curl`
+- `ss`
+- `openssl`
 
-### Optional Tools (for full functionality)
+### Optional (for full functionality)
 
-- `nmap` - for port scanning (install with `sudo apt install nmap`)
-- `traceroute` or `tracepath` - for path tracing
-- `dig`, `nslookup`, or `host` - for DNS diagnostics
-- `ss` - for socket statistics
+- `nmap` — port scan, service scan, vuln check
+- `traceroute` or `tracepath` — hop-by-hop path
+- `dig` / `nslookup` / `host` — DNS lookups
+- `whois` — domain/IP registration info
+- `python3` — geolocation JSON parsing
 
 ## Installation
 
-1. **Download the script:**
+```bash
+# Clone
+git clone https://github.com/lexlucas/Network_Tool.git
+cd Network_Tool
 
-   ```bash
-   curl -O https://raw.githubusercontent.com/yourusername/network-tool/main/network_diagnostic.sh
-   ```
+# Make executable
+chmod +x networktool.sh
 
-2. **Make it executable:**
+# Install dependencies (Debian/Ubuntu)
+sudo apt install nmap traceroute dnsutils iproute2 curl whois openssl
 
-   ```bash
-   chmod +x network_diagnostic.sh
-   ```
-
-3. **Optional: Install missing dependencies:**
-
-   ```bash
-   # On Debian/Ubuntu
-   sudo apt install nmap traceroute dnsutils iproute2 curl
-   
-   # On RHEL/CentOS
-   sudo yum install nmap traceroute bind-utils iproute curl
-   ```
+# Install dependencies (RHEL/CentOS)
+sudo yum install nmap traceroute bind-utils iproute curl whois openssl
+```
 
 ## Usage
 
-### Basic Usage
-
 ```bash
-./network_diagnostic.sh
+# Normal user
+./networktool.sh
+
+# Root (enables SYN scans + OS detection)
+sudo ./networktool.sh
 ```
 
-### Running with Elevated Privileges
+## Menu Reference
 
-Some features work better with root privileges:
-
-```bash
-sudo ./network_diagnostic.sh
-```
-
-**Note:** Running as root enables SYN scanning (-sS) in nmap for faster and more stealthy port scans.
-
-## Menu Options
-
-| Option | Function | Description | Defaults |
-|--------|----------|-------------|----------|
-| **1** | Check Network Interfaces | Displays all network interfaces, their states, MAC addresses, IP addresses, and traffic statistics | N/A |
-| **2** | Ping Host | Test connectivity to a host with customizable packet count | Host: 8.8.8.8<br>Packets: 4 |
-| **3** | Port Scan | Scan ports on a target host (SYN scan as root, TCP connect as user) | Host: localhost<br>Ports: 1-1000 |
-| **4** | Display Routing Table | Shows routing table, default gateway, and ARP cache entries | N/A |
-| **5** | Traceroute | Trace the network path to a destination | Host: 8.8.8.8<br>Max hops: 30 |
-| **6** | Check DNS Resolution | Resolve domain names and display DNS server configuration | Domain: google.com |
-| **7** | Speed Test | Perform a simple download speed test using public test files | Test file: 10MB |
-| **8** | Connection Information | Show public IP address, network statistics, and active connections | N/A |
-| **9** | View Log File | Display the last 20 entries from the log file | N/A |
-| **10** | Exit | Exit the application | N/A |
-
-## Logging
-
-All operations are logged to `network_diagnostic.log` in the current directory with timestamps. The log includes:
-
-- Tool startup and shutdown
-- Each diagnostic operation performed
-- Error messages and warnings
-- Scan results and findings
-
-## Temporary Files
-
-The script creates a temporary directory in `/tmp/netdiag_$$` (where `$$` is the process ID) for any temporary files. This directory is automatically cleaned up on exit.
+| # | Function | Description |
+|---|----------|-------------|
+| **1** | Dashboard | Public IP, primary interface, gateway, DNS servers, connectivity to 8.8.8.8/1.1.1.1/google.com, top open ports |
+| **2** | Interface Info | All interfaces — IP, MAC, state (UP/DOWN), RX/TX byte stats |
+| **3** | Routing Table | Default gateway, full route table, ARP/neighbour cache |
+| **4** | Local Discovery | nmap ping sweep of a subnet to find live hosts and MACs |
+| **5** | Ping | ICMP test with configurable packet count |
+| **6** | Traceroute | Hop-by-hop path (falls back to `tracepath`) |
+| **7** | MTU Discovery | Probes common MTU sizes (1500 → 576) with DF-bit ping |
+| **8** | DNS Lookup | A, AAAA, MX, NS, TXT records + configured DNS servers |
+| **9** | Reverse DNS | PTR lookup for any IP |
+| **10** | Whois | Domain/IP registration (falls back to RDAP if whois not installed) |
+| **11** | Port Scan | Open ports via nmap (SYN as root, TCP connect as user) |
+| **12** | Service Scan | Service versions + OS detection |
+| **13** | Vuln Check | nmap NSE `vuln,auth,default` scripts with authorization prompt |
+| **14** | HTTP Check | Status code, response headers, redirect chain, timing, speed |
+| **15** | SSL Certificate | Expiry countdown, issuer, Subject Alternative Names, cipher suite |
+| **16** | IP Geolocation | Country, city, ASN, org, timezone via ipinfo.io |
+| **17** | Active Connections | All established TCP/UDP sessions with process names |
+| **18** | Listening Ports | Services bound and waiting, TCP + UDP |
+| **19** | Speed Test | Download bandwidth in Mbps (Hetzner test endpoints) |
+| **20** | Live Bandwidth | Real-time RX/TX bytes/s and Kbps per interface |
+| **21** | View Log | Last 30 entries from `networktool.log` |
+| **22** | Export Result | Save last command output to `last_result.txt` |
+| **0** | Exit | |
 
 ## Configuration
 
-You can modify these variables at the top of the script:
+Edit these variables at the top of `networktool.sh`:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `LOG_FILE` | `$(pwd)/network_diagnostic.log` | Log file location |
-| `DEFAULT_PING_COUNT` | 4 | Default number of ping packets |
-| `DEFAULT_NMAP_PORTS` | "1-1000" | Default port range for scanning |
-| `TIMEOUT_SECONDS` | 10 | Timeout for various operations |
+| `LOG_FILE` | `<script_dir>/networktool.log` | Log file path |
+| `RESULTS_FILE` | `<script_dir>/last_result.txt` | Export file path |
+| `DEFAULT_PING_COUNT` | `4` | Ping packet count |
+| `DEFAULT_PORTS` | `1-1000` | nmap port range |
+| `DEFAULT_TIMEOUT` | `10` | Seconds before timeout |
 
-## Examples
+## Common Workflows
 
-### Quick Connectivity Check
-
+### Quick network health check
 ```
-1. Select option 1 to check interfaces
-2. Select option 2 to ping Google DNS (8.8.8.8)
-3. Select option 6 to verify DNS resolution
+1 → Dashboard
 ```
 
-### Troubleshooting Network Issues
-
+### Troubleshoot connectivity
 ```
-1. Check interfaces (option 1) - Verify IP configuration
-2. Ping gateway (option 2) - Test local connectivity
-3. Traceroute to external host (option 5) - Identify where connection fails
-4. Check DNS (option 6) - Verify name resolution
+5 → Ping gateway
+6 → Traceroute to failing host
+8 → Verify DNS resolves correctly
 ```
 
-### Security Audit
-
+### Inspect a server
 ```
-1. Scan localhost ports (option 3) - Check for open services
-2. View active connections (option 8) - Monitor established connections
+11 → Port scan
+12 → Service/OS fingerprint
+15 → Check SSL cert expiry
+14 → Inspect HTTP headers
 ```
 
-## Notes and Warnings
+### Monitor live traffic
+```
+20 → Live bandwidth on primary interface
+17 → Active connections
+18 → Listening ports
+```
 
-1. **Legal Considerations**: Only scan networks you own or have permission to test
-2. **Port Scanning**: Some network administrators may consider port scanning hostile
-3. **Resource Usage**: Intensive scans may impact network performance
-4. **Root Access**: Running as root provides more accurate results but increases security risk
-5. **Log Files**: Logs may contain sensitive network information - handle appropriately
+## Notes
 
-## Troubleshooting
-
-### Common Issues
-
-1. **"Missing tools" error**: Install the required packages as shown in Requirements section
-2. **Slow port scans**: Regular users use slower TCP connect scans; run as root for SYN scans
-3. **Permission denied**: Some operations require root privileges
-4. **Timeout errors**: Network may be blocking certain tests; try different hosts
-
-### Error Messages
-
-- **Ping failed or timed out**: Host unreachable or blocking ICMP
-- **Scan failed**: Target may be filtering or firewalled
-- **No DNS tool found**: Install dnsutils or bind-utils package
+- **Legal**: Only scan hosts and networks you own or have explicit written permission to test.
+- **Root**: Required for SYN scans (`-sS`) and OS detection. Non-root falls back to TCP connect scans.
+- **Logs**: `networktool.log` records all actions with timestamps. May contain sensitive info — handle accordingly.
+- **Temp files**: Created under `/tmp/nettool_<pid>` and cleaned up automatically on exit.
 
 ## Version History
 
-- **Version 2.0**: Enhanced features, improved logging, better error handling
-- **Version 1.0**: Initial release with basic functionality
+| Version | Changes |
+|---------|---------|
+| 3.0 | Full rewrite — 22-function daily-use suite with TLS, geolocation, live bandwidth, MTU, vuln check |
+| 2.1 | Bug fixes — dig syntax, speed test endpoints, ip -color, log path, MTU, scan quoting |
+| 2.0 | Enhanced features, improved logging, better error handling |
+| 1.0 | Initial release |
 
 ## Author
 
-Created by @lexlucas
+Created by [@lexlucas](https://github.com/lexlucas)
 
 ## License
 
-This tool is provided for educational and legitimate diagnostic purposes. Users are responsible for complying with all applicable laws and regulations.
+For educational and legitimate diagnostic purposes only. Users are responsible for complying with all applicable laws and regulations.
 
----
-
-**Disclaimer**: Use this tool responsibly and only on networks you own or have explicit permission to test. Unauthorized scanning or testing of networks may be illegal in your jurisdiction.
+> **Disclaimer**: Use this tool responsibly and only on networks you own or have explicit permission to test. Unauthorized scanning may be illegal in your jurisdiction.
