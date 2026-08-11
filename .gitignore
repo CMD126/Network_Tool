@@ -5,8 +5,9 @@ networktool.log
 # Exported results
 last_result.txt
 
-# Temp files
-/tmp/
+# Local config if someone drops a real one next to config.ini.example instead
+# of ~/.config/networktool/config.ini (where the script actually reads it)
+config/config.ini
 
 # OS
 .DS_Store
@@ -17,3 +18,5 @@ Thumbs.db
 *.swp
 *.swo
 *~
+*.orig
+*.bak

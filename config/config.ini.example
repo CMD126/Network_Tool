@@ -1,0 +1,41 @@
+# Network Tool Pro — example configuration
+#
+# Install location: ~/.config/networktool/config.ini
+# (or $XDG_CONFIG_HOME/networktool/config.ini if XDG_CONFIG_HOME is set)
+#
+# A default copy is written automatically on first run if none exists.
+# `make install` also copies this example there. Lines starting with # or ;
+# are comments; sections ([general], [speedtest]) are for readability only —
+# every key is read from a single flat namespace regardless of section.
+
+[general]
+# Default ping packet count (overridden by --count)
+ping_count = 4
+
+# Default port range for Port Scan / Service Scan (overridden by --ports)
+ports = 1-1000
+
+# Timeout in seconds for SSL/whois/other bounded network calls
+timeout = 10
+
+# on/off — disable if you pipe output somewhere that mishandles ANSI codes
+# (--json and --no-color always force this off regardless of the setting here)
+color = on
+
+# on/off — reserved for forcing colorblind-safe symbol-only mode; the +/-/!/*
+# markers are already always shown alongside color today
+colorblind_safe = off
+
+# Preferred DNS server to note/display (informational; does not override the
+# system resolver used by dig/nslookup)
+dns_server =
+
+# Log rotation thresholds — whichever is hit first triggers rotation
+log_max_size = 5242880
+log_max_lines = 1000
+
+[speedtest]
+# Comma-separated list of direct-download URLs used by Speed Test, tried in
+# order until one responds. Replace with endpoints close to you for more
+# meaningful results.
+speed_test_endpoints = https://speed.hetzner.de/10MB.bin,https://ash-speed.hetzner.com/10MB.bin,https://bouygues.testdebit.info/10M.iso,https://nbg1-speed.hetzner.com/10MB.bin
