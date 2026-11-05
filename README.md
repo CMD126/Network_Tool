@@ -1,7 +1,7 @@
 # Network Tool Pro
 
 A cross-platform (Linux / macOS / BSD) network diagnostics suite with an
-interactive menu **and** a full headless CLI mode with JSON output — covering
+interactive menu **and** a full headless CLI mode with JSON output, covering
 interface analysis, DNS, scanning, web/TLS inspection, and live monitoring.
 
 v4.0 is a ground-up rewrite of the original single-file v3.0 script: it's now
@@ -13,7 +13,7 @@ config file, and ships a test suite.
 
 | Category | Capabilities |
 |----------|-------------|
-| **Quick** | Dashboard — public IP, interface, gateway, DNS, connectivity (parallel-pinged) and open ports at a glance |
+| **Quick** | Dashboard, public IP, interface, gateway, DNS, connectivity (parallel-pinged) and open ports at a glance |
 | **Network** | Interface info, routing table, ARP, local host discovery |
 | **Connectivity** | Ping, traceroute, MTU discovery |
 | **DNS** | Full record lookup (A/AAAA/MX/NS/TXT), reverse DNS, whois |
@@ -27,7 +27,7 @@ config file, and ships a test suite.
   `ss` vs `netstat`/`lsof`, `/sys/class/net` vs `netstat -ib`, ping flags,
   MTU/DF-bit probing, …) is abstracted behind [lib/platform.sh](lib/platform.sh)
   so the same feature code runs on Ubuntu 22.04+ and macOS 14+.
-- **CLI / headless mode**: every menu item is also a flag — see
+- **CLI / headless mode**: every menu item is also a flag, see
   [CLI usage](#cli-non-interactive-usage) below. `--json` gives structured,
   `jq`-pipeable output; `--quiet` trims human output to the essentials.
 - **Security hardening**: `sanitize_input()` strips shell metacharacters,
@@ -53,7 +53,7 @@ config file, and ships a test suite.
 
 ### Essential
 
-- `bash` 4+ (macOS ships bash 3.2 by default — most of this script works fine
+- `bash` 4+ (macOS ships bash 3.2 by default, most of this script works fine
   there too, but `brew install bash` is recommended)
 - `curl`
 - `openssl`
@@ -63,14 +63,14 @@ config file, and ships a test suite.
 
 ### Optional (for full functionality)
 
-- `nmap` — port scan, service scan, vuln check, local discovery
-- `traceroute` or `tracepath` — hop-by-hop path
-- `dig` / `nslookup` / `host` — DNS lookups (at least one required)
-- `whois` — domain/IP registration info (falls back to an RDAP HTTP lookup)
-- `python3` — nicer geolocation/RDAP JSON formatting (optional; falls back to
+- `nmap`, port scan, service scan, vuln check, local discovery
+- `traceroute` or `tracepath`, hop-by-hop path
+- `dig` / `nslookup` / `host`, DNS lookups (at least one required)
+- `whois`, domain/IP registration info (falls back to an RDAP HTTP lookup)
+- `python3`, nicer geolocation/RDAP JSON formatting (optional; falls back to
   a `grep`-based parser)
-- `lsof` — process names in listening-port/connection lists on macOS/BSD
-- GNU coreutils `timeout`/`gtimeout` — bounds the SSL check; the tool still
+- `lsof`, process names in listening-port/connection lists on macOS/BSD
+- GNU coreutils `timeout`/`gtimeout`, bounds the SSL check; the tool still
   works without it, just without a hard timeout
 
 ## Installation
@@ -153,7 +153,7 @@ Global flags: `--json`, `--quiet`, `--no-color`, `--count N`, `--ports RANGE`,
 `--port N`, `--samples N`, `--interval N`, `--yes`, `-h`/`--help`.
 
 `--vuln-check` and a non-private `--port-scan`/`--service-scan` target always
-require explicit consent — interactively via a `[y/N]` prompt, or in CLI mode
+require explicit consent, interactively via a `[y/N]` prompt, or in CLI mode
 via `--yes`. Without it the scan is refused.
 
 #### JSON output
@@ -173,7 +173,7 @@ Every tool emits one JSON object: `{"tool", "target", "success", "data", "timest
 | # | Function | Description |
 |---|----------|-------------|
 | **1** | Dashboard | Public IP, primary interface, gateway, DNS servers, connectivity to 8.8.8.8/1.1.1.1/google.com (pinged in parallel), top open ports |
-| **2** | Interface Info | All interfaces — IP, MAC, state (UP/DOWN), RX/TX byte stats |
+| **2** | Interface Info | All interfaces, IP, MAC, state (UP/DOWN), RX/TX byte stats |
 | **3** | Routing Table | Default gateway, full route table, ARP/neighbour cache |
 | **4** | Local Discovery | nmap ping sweep of a subnet to find live hosts and MACs |
 | **5** | Ping | ICMP test with configurable packet count |
@@ -207,7 +207,7 @@ first run from [config/config.ini.example](config/config.ini.example)).
 | `ports` | `1-1000` | Default port range for scans |
 | `timeout` | `10` | Seconds before SSL/whois calls time out |
 | `color` | `on` | Set `off` to disable ANSI colors |
-| `colorblind_safe` | `off` | Reserved — `+`/`-`/`!`/`*` symbols are already always shown alongside color |
+| `colorblind_safe` | `off` | Reserved, `+`/`-`/`!`/`*` symbols are already always shown alongside color |
 | `dns_server` | *(empty)* | Informational preferred DNS server note |
 | `log_max_size` | `5242880` | Log rotation size threshold (bytes) |
 | `log_max_lines` | `1000` | Log rotation line-count threshold |
@@ -267,7 +267,7 @@ Makefile
 ## Bug fixes from v3.0
 
 - **`dns_lookup()`**: `dig`'s positional syntax is `dig NAME TYPE`, not
-  `dig TYPE NAME` — the old code silently returned nothing.
+  `dig TYPE NAME`, the old code silently returned nothing.
 - **`whois_lookup()` RDAP fallback**: the domain was mangled (`.` → `DOT`)
   before being sent to `rdap.org`, which meant the fallback could never
   succeed; the real domain is now passed through (and redirects are followed).
@@ -292,9 +292,9 @@ Makefile
 - **Root**: Required for SYN scans (`-sS`) and OS detection. Non-root falls
   back to TCP connect scans.
 - **Logs**: `networktool.log` records actions with timestamps and rotates
-  automatically. May contain target hostnames/IPs — handle accordingly.
+  automatically. May contain target hostnames/IPs, handle accordingly.
 - **Temp files**: created via `mktemp -d` and cleaned up automatically on exit.
-- **Shell strictness**: the script runs under `set -uo pipefail`, not `-e` —
+- **Shell strictness**: the script runs under `set -uo pipefail`, not `-e` -
   see the comment at the top of `networktool.sh` for why (a normal "no match"
   `grep`/`dig` result is expected, not an error, and would otherwise abort
   the whole run).
@@ -303,9 +303,9 @@ Makefile
 
 | Version | Changes |
 |---------|---------|
-| 4.0 | Cross-platform (Linux/macOS/BSD) rewrite — modular `lib/`, CLI + JSON mode, config file, input validation/sanitization, target history, log rotation, parallel dashboard pings, bug fixes (see above), test suite |
-| 3.0 | Full rewrite — 22-function daily-use suite with TLS, geolocation, live bandwidth, MTU, vuln check |
-| 2.1 | Bug fixes — dig syntax, speed test endpoints, ip -color, log path, MTU, scan quoting |
+| 4.0 | Cross-platform (Linux/macOS/BSD) rewrite, modular `lib/`, CLI + JSON mode, config file, input validation/sanitization, target history, log rotation, parallel dashboard pings, bug fixes (see above), test suite |
+| 3.0 | Full rewrite, 22-function daily-use suite with TLS, geolocation, live bandwidth, MTU, vuln check |
+| 2.1 | Bug fixes, dig syntax, speed test endpoints, ip -color, log path, MTU, scan quoting |
 | 2.0 | Enhanced features, improved logging, better error handling |
 | 1.0 | Initial release |
 
