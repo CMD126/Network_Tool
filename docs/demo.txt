@@ -1,0 +1,45 @@
+$ ./networktool.sh --ping 127.0.0.1 --count 3 --quiet
+PING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.
+64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.022 ms
+64 bytes from 127.0.0.1: icmp_seq=2 ttl=64 time=0.030 ms
+64 bytes from 127.0.0.1: icmp_seq=3 ttl=64 time=0.036 ms
+
+--- 127.0.0.1 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 402ms
+rtt min/avg/max/mdev = 0.022/0.029/0.036/0.005 ms
+[+] Ping succeeded — 0% loss
+
+$ ./networktool.sh --port-scan 127.0.0.1 --ports 22,80,443,8000-8100 --quiet
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-11-14 20:21 UTC
+Nmap scan report for localhost (127.0.0.1)
+Host is up (0.0000020s latency).
+Not shown: 103 closed tcp ports (reset)
+PORT     STATE SERVICE
+8080/tcp open  http-proxy
+
+Nmap done: 1 IP address (1 host up) scanned in 0.08 seconds
+
+$ ./networktool.sh --http http://127.0.0.1:8080 --json | jq .
+{
+  "tool": "http_check",
+  "target": "http://127.0.0.1:8080",
+  "success": true,
+  "data": {
+    "status_code": "200",
+    "time_total": "0.000989s",
+    "size_bytes": "6"
+  },
+  "timestamp": "2026-11-14T20:21:03Z"
+}
+
+$ ./networktool.sh --ping 'example.com;id'
+[-] Invalid host: 'example.com;id'
+
+$ ./networktool.sh --port-scan 8.8.8.8
+╔════════════════════════════════════════════════════════════╗
+║ WARNING: 8.8.8.8 (8.8.8.8) is NOT a private/local address. ║
+║ Only scan systems you OWN or have WRITTEN permission to    ║
+║ test. Unauthorized scanning may be illegal.                ║
+╚════════════════════════════════════════════════════════════╝
+[-] Refusing to scan a public target without --yes.
+

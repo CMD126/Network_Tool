@@ -1,15 +1,63 @@
 # Network Tool Pro
 
 [![CI](https://github.com/CMD126/Network_Tool/actions/workflows/ci.yml/badge.svg)](https://github.com/CMD126/Network_Tool/actions/workflows/ci.yml)
+![ShellCheck](https://img.shields.io/badge/ShellCheck-0%20warnings-brightgreen)
+![Bash](https://img.shields.io/badge/bash-4%2B-blue)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-A cross-platform (Linux / macOS / BSD) network diagnostics suite with an
-interactive menu **and** a full headless CLI mode with JSON output, covering
-interface analysis, DNS, scanning, web/TLS inspection, and live monitoring.
+**One Bash command for 20 everyday network checks (ping, DNS, port scans, TLS
+certificates, HTTP headers, bandwidth) with an interactive menu for people and
+a `--json` CLI for scripts and automation.**
 
-v4.0 is a ground-up rewrite of the original single-file v3.0 script: it's now
-modular (`lib/*.sh`), works on macOS/BSD as well as Linux, validates and
-sanitizes every input, supports `--json`/`--quiet`/headless CLI flags, reads a
-config file, and ships a test suite.
+### Why it matters
+
+- **Faster troubleshooting.** Instead of remembering the right flags for
+  `ping`, `dig`, `nmap`, `openssl`, `curl`, `ss` and friends on each OS, you
+  pick a menu item or one flag and get a readable answer.
+- **Automation-ready.** Every check is also a CLI flag; with `--json` stdout is
+  one JSON object per result, so it can feed `jq`, monitoring or CI jobs.
+- **Safe by default.** Every target is validated before it reaches a command,
+  and scans of anything that is not a private/local address are refused
+  unless you explicitly confirm (`--yes` or a `[y/N]` prompt).
+
+### Demo
+
+![Terminal session: ping, local port scan, JSON HTTP check, rejected injection attempt, refused public scan](docs/demo.svg)
+
+Real output, recorded with [`docs/demo.sh`](docs/demo.sh) against this machine
+only (127.0.0.1 and a throwaway local web server) and rendered to SVG by
+[`docs/render_svg.py`](docs/render_svg.py); the plain-text transcript is in
+[`docs/demo.txt`](docs/demo.txt). The last two commands show the safety checks:
+a shell-injection attempt is rejected as an invalid host, and a scan of a public
+IP is refused before any packet is sent.
+
+### Engineering highlights
+
+- **Modular, cross-platform design:** ~2,600 lines of Bash split into `lib/`
+  modules; OS differences (`ip` vs `ifconfig`, `ss` vs `netstat`, ping flags,
+  `/sys` vs `netstat -ib`) live behind one abstraction layer
+  ([lib/platform.sh](lib/platform.sh)).
+- **Input handling written with an attacker in mind:** strict validators for
+  IPs (v4/v6), domains, CIDRs, URLs, port lists and interface names; untrusted
+  numbers are checked before they reach bash arithmetic (which would otherwise
+  execute `$(...)` hidden in a value); targets are always passed as single
+  quoted arguments, never through `eval`. See [SECURITY.md](SECURITY.md).
+- **Tested contract:** 52 [bats](https://github.com/bats-core/bats-core) tests,
+  including end-to-end checks that `--json` output parses as JSON and
+  regression tests for each input-validation fix, plus a dependency-free
+  fallback runner (`tests/run_tests.sh`).
+- **CI on every push:** ShellCheck at warning level (zero warnings) and the
+  full test suite on GitHub Actions.
+
+### Quick start
+
+```bash
+git clone https://github.com/CMD126/Network_Tool.git
+cd Network_Tool
+./networktool.sh                          # interactive menu
+./networktool.sh --ping 127.0.0.1 --json  # one check, machine-readable
+./networktool.sh --help                   # every flag, with examples
+```
 
 ## Features
 
@@ -28,13 +76,15 @@ config file, and ships a test suite.
 - **Cross-platform**: every OS-specific command (`ip` vs `ifconfig`/`route`,
   `ss` vs `netstat`/`lsof`, `/sys/class/net` vs `netstat -ib`, ping flags,
   MTU/DF-bit probing, …) is abstracted behind [lib/platform.sh](lib/platform.sh)
-  so the same feature code runs on Ubuntu 22.04+ and macOS 14+.
+  so the same feature code serves Linux and macOS/BSD. CI runs on Ubuntu; the
+  macOS/BSD branches are not exercised by CI.
 - **CLI / headless mode**: every menu item is also a flag, see
   [CLI usage](#cli-non-interactive-usage) below. `--json` gives structured,
   `jq`-pipeable output; `--quiet` trims human output to the essentials.
 - **Security hardening**: `sanitize_input()` strips shell metacharacters,
-  `validate_ip/domain/cidr/url/port_range()` reject malformed targets before
-  they ever reach a command, and port/vuln scans refuse to touch a
+  `validate_ip/domain/cidr/url/port_range/iface()` reject malformed targets
+  before they ever reach a command, config values are validated before use,
+  and port/vuln scans refuse to touch a
   non-private address without an explicit `--yes` (or interactive
   confirmation), printing a loud legal-use warning first.
 - **Reliability fixes**: parallel dashboard pings (background jobs + `wait`),
@@ -79,9 +129,8 @@ config file, and ships a test suite.
 
 ```bash
 # Clone
-git clone https://github.com/lexlucas/Network_Tool.git
+git clone https://github.com/CMD126/Network_Tool.git
 cd Network_Tool
-chmod +x networktool.sh
 
 # Debian/Ubuntu
 sudo apt install nmap traceroute dnsutils iproute2 curl whois openssl python3
@@ -160,15 +209,28 @@ via `--yes`. Without it the scan is refused.
 
 #### JSON output
 
-```bash
-$ ./networktool.sh --ping 8.8.8.8 --count 2 --json
-{"tool":"ping","target":"8.8.8.8","success":true,"data":{"packet_loss_pct":0,"count":2},"timestamp":"2026-08-11T14:50:49Z"}
+Real output (from [docs/demo.txt](docs/demo.txt)):
 
-$ ./networktool.sh --http https://example.com --json | jq .data.status_code
-"200"
+```bash
+$ ./networktool.sh --http http://127.0.0.1:8080 --json | jq .
+{
+  "tool": "http_check",
+  "target": "http://127.0.0.1:8080",
+  "success": true,
+  "data": {
+    "status_code": "200",
+    "time_total": "0.000989s",
+    "size_bytes": "6"
+  },
+  "timestamp": "2026-11-14T20:21:03Z"
+}
 ```
 
-Every tool emits one JSON object: `{"tool", "target", "success", "data", "timestamp"}`.
+Each result is one JSON object on its own line:
+`{"tool", "target", "success", "data", "timestamp"}`. Most checks print one
+object; `--live-bandwidth` prints one per sample. Under `--json`, stdout carries
+only JSON (raw tool output is suppressed), errors go to stderr, and an invalid
+target exits with status 1.
 
 ## Menu Reference
 
@@ -262,7 +324,12 @@ lib/web.sh               HTTP check, SSL certificate, geolocation
 lib/monitor.sh           Connections, listening ports, speed test, live bandwidth
 lib/cli.sh               Non-interactive argument parsing & dispatch
 config/config.ini.example
-tests/test_utils.bats, tests/test_web.bats, tests/run_tests.sh
+tests/test_utils.bats   Unit tests: validators, sanitizer, JSON helpers
+tests/test_security.bats  Regression tests for input-handling hardening
+tests/test_cli.bats     End-to-end CLI tests (JSON contract, rejected input)
+tests/test_web.bats     Certificate date parsing
+tests/run_tests.sh      Fallback runner when bats is not installed
+docs/                   Demo recording script, transcript and SVG
 Makefile
 ```
 
@@ -313,12 +380,12 @@ Makefile
 
 ## Author
 
-Created by [@lexlucas](https://github.com/lexlucas)
+Created by [@lexlucas](https://github.com/CMD126)
 
 ## License
 
-For educational and legitimate diagnostic purposes only. Users are
-responsible for complying with all applicable laws and regulations.
+[MIT](LICENSE). Intended for legitimate diagnostics and authorized testing;
+users are responsible for complying with all applicable laws and regulations.
 
 > **Disclaimer**: Use this tool responsibly and only on networks you own or
 > have explicit permission to test. Unauthorized scanning may be illegal in

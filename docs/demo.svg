@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="677" height="900" viewBox="0 0 677 900" role="img" aria-label="Terminal session running networktool.sh">
+<rect width="677" height="900" rx="8" fill="#0d1117"/>
+<rect width="677" height="30" rx="8" fill="#161b22"/>
+<rect y="22" width="677" height="8" fill="#161b22"/>
+<circle cx="18" cy="15" r="6" fill="#ff5f56"/>
+<circle cx="38" cy="15" r="6" fill="#ffbd2e"/>
+<circle cx="58" cy="15" r="6" fill="#27c93f"/>
+<text x="338.5" y="20" fill="#8b949e" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle">networktool.sh</text>
+<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="14" fill="#c9d1d9" xml:space="preserve">
+<tspan x="18" y="60"><tspan fill="#7ee787">$ </tspan><tspan fill="#c9d1d9" font-weight="bold">./networktool.sh --ping 127.0.0.1 --count 3 --quiet</tspan></tspan>
+<tspan x="18" y="79">PING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.</tspan>
+<tspan x="18" y="98">64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.022 ms</tspan>
+<tspan x="18" y="117">64 bytes from 127.0.0.1: icmp_seq=2 ttl=64 time=0.030 ms</tspan>
+<tspan x="18" y="136">64 bytes from 127.0.0.1: icmp_seq=3 ttl=64 time=0.036 ms</tspan>
+<tspan x="18" y="155"><tspan fill="#f85149"></tspan></tspan>
+<tspan x="18" y="174"><tspan fill="#8b949e">--- 127.0.0.1 ping statistics ---</tspan></tspan>
+<tspan x="18" y="193">3 packets transmitted, 3 received, 0% packet loss, time 402ms</tspan>
+<tspan x="18" y="212"><tspan fill="#8b949e">rtt min/avg/max/mdev = 0.022/0.029/0.036/0.005 ms</tspan></tspan>
+<tspan x="18" y="231"><tspan fill="#3fb950">[+] Ping succeeded — 0% loss</tspan></tspan>
+<tspan x="18" y="250"><tspan fill="#f85149"></tspan></tspan>
+<tspan x="18" y="269"><tspan fill="#7ee787">$ </tspan><tspan fill="#c9d1d9" font-weight="bold">./networktool.sh --port-scan 127.0.0.1 --ports 22,80,443,8000-8100 --quiet</tspan></tspan>
+<tspan x="18" y="288"><tspan fill="#8b949e">Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-11-14 20:21 UTC</tspan></tspan>
+<tspan x="18" y="307">Nmap scan report for localhost (127.0.0.1)</tspan>
+<tspan x="18" y="326">Host is up (0.0000020s latency).</tspan>
+<tspan x="18" y="345">Not shown: 103 closed tcp ports (reset)</tspan>
+<tspan x="18" y="364">PORT     STATE SERVICE</tspan>
+<tspan x="18" y="383">8080/tcp open  http-proxy</tspan>
+<tspan x="18" y="402"><tspan fill="#f85149"></tspan></tspan>
+<tspan x="18" y="421"><tspan fill="#8b949e">Nmap done: 1 IP address (1 host up) scanned in 0.08 seconds</tspan></tspan>
+<tspan x="18" y="440"><tspan fill="#f85149"></tspan></tspan>
+<tspan x="18" y="459"><tspan fill="#7ee787">$ </tspan><tspan fill="#c9d1d9" font-weight="bold">./networktool.sh --http http://127.0.0.1:8080 --json | jq .</tspan></tspan>
+<tspan x="18" y="478">{</tspan>
+<tspan x="18" y="497">  <tspan fill="#79c0ff">&quot;tool&quot;</tspan>: <tspan fill="#a5d6ff">&quot;http_check&quot;,</tspan></tspan>
+<tspan x="18" y="516">  <tspan fill="#79c0ff">&quot;target&quot;</tspan>: <tspan fill="#a5d6ff">&quot;http://127.0.0.1:8080&quot;,</tspan></tspan>
+<tspan x="18" y="535">  <tspan fill="#79c0ff">&quot;success&quot;</tspan>: <tspan fill="#3fb950">true,</tspan></tspan>
+<tspan x="18" y="554">  <tspan fill="#79c0ff">&quot;data&quot;</tspan>: <tspan fill="#3fb950">{</tspan></tspan>
+<tspan x="18" y="573">    <tspan fill="#79c0ff">&quot;status_code&quot;</tspan>: <tspan fill="#a5d6ff">&quot;200&quot;,</tspan></tspan>
+<tspan x="18" y="592">    <tspan fill="#79c0ff">&quot;time_total&quot;</tspan>: <tspan fill="#a5d6ff">&quot;0.000989s&quot;,</tspan></tspan>
+<tspan x="18" y="611">    <tspan fill="#79c0ff">&quot;size_bytes&quot;</tspan>: <tspan fill="#a5d6ff">&quot;6&quot;</tspan></tspan>
+<tspan x="18" y="630">  },</tspan>
+<tspan x="18" y="649">  <tspan fill="#79c0ff">&quot;timestamp&quot;</tspan>: <tspan fill="#a5d6ff">&quot;2026-11-14T20:21:03Z&quot;</tspan></tspan>
+<tspan x="18" y="668">}</tspan>
+<tspan x="18" y="687"><tspan fill="#f85149"></tspan></tspan>
+<tspan x="18" y="706"><tspan fill="#7ee787">$ </tspan><tspan fill="#c9d1d9" font-weight="bold">./networktool.sh --ping &#x27;example.com;id&#x27;</tspan></tspan>
+<tspan x="18" y="725"><tspan fill="#f85149">[-] Invalid host: &#x27;example.com;id&#x27;</tspan></tspan>
+<tspan x="18" y="744"><tspan fill="#f85149"></tspan></tspan>
+<tspan x="18" y="763"><tspan fill="#7ee787">$ </tspan><tspan fill="#c9d1d9" font-weight="bold">./networktool.sh --port-scan 8.8.8.8</tspan></tspan>
+<tspan x="18" y="782"><tspan fill="#f85149">╔════════════════════════════════════════════════════════════╗</tspan></tspan>
+<tspan x="18" y="801"><tspan fill="#f85149">║ WARNING: 8.8.8.8 (8.8.8.8) is NOT a private/local address. ║</tspan></tspan>
+<tspan x="18" y="820"><tspan fill="#f85149">║ Only scan systems you OWN or have WRITTEN permission to    ║</tspan></tspan>
+<tspan x="18" y="839"><tspan fill="#f85149">║ test. Unauthorized scanning may be illegal.                ║</tspan></tspan>
+<tspan x="18" y="858"><tspan fill="#f85149">╚════════════════════════════════════════════════════════════╝</tspan></tspan>
+<tspan x="18" y="877"><tspan fill="#f85149">[-] Refusing to scan a public target without --yes.</tspan></tspan>
+</text></svg>
