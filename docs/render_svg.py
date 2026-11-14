@@ -95,10 +95,38 @@ def main(src, dst):
         f'<text font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, \'DejaVu Sans Mono\', monospace" '
         f'font-size="{FONT_SIZE}" fill="{FG}" xml:space="preserve">',
     ]
+    # Box-drawing frames (the WARNING box) are drawn as SVG rectangles, not
+    # glyphs: many fonts give box characters a different width than letters,
+    # which made the right-hand border look ragged in some browsers.
+    frames = []
+    box_top = None
     for i, line in enumerate(lines):
         y = PAD_TOP + i * LINE_H + FONT_SIZE
+        if line.startswith("╔"):
+            box_top = (i, len(line))
+            continue
+        if line.startswith("╚") and box_top is not None:
+            top, ncols = box_top
+            box_top = None
+            x0 = PAD_X + CHAR_W / 2
+            y0 = PAD_TOP + top * LINE_H + LINE_H / 2
+            w = (ncols - 1) * CHAR_W
+            h = (i - top) * LINE_H
+            for inset in (0, 3):
+                frames.append(
+                    f'<rect x="{x0 + inset:.2f}" y="{y0 + inset:.2f}" '
+                    f'width="{w - 2 * inset:.2f}" height="{h - 2 * inset:.2f}" '
+                    f'fill="none" stroke="{COLORS["err"]}" stroke-width="1.2"/>')
+            continue
+        if line.startswith("║") and box_top is not None:
+            inner = html.escape(line[1:].rstrip("║").rstrip())
+            out.append(f'<tspan x="{PAD_X + CHAR_W}" y="{y}" '
+                       f'fill="{COLORS["err"]}">{inner}</tspan>')
+            continue
         out.append(f'<tspan x="{PAD_X}" y="{y}">{render_line(line)}</tspan>')
-    out.append("</text></svg>")
+    out.append("</text>")
+    out.extend(frames)
+    out.append("</svg>")
     with open(dst, "w", encoding="utf-8") as fh:
         fh.write("\n".join(out) + "\n")
 

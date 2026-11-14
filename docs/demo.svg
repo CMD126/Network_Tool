@@ -45,10 +45,11 @@
 <tspan x="18" y="725"><tspan fill="#f85149">[-] Invalid host: &#x27;example.com;id&#x27;</tspan></tspan>
 <tspan x="18" y="744"><tspan fill="#f85149"></tspan></tspan>
 <tspan x="18" y="763"><tspan fill="#7ee787">$ </tspan><tspan fill="#c9d1d9" font-weight="bold">./networktool.sh --port-scan 8.8.8.8</tspan></tspan>
-<tspan x="18" y="782"><tspan fill="#f85149">╔════════════════════════════════════════════════════════════╗</tspan></tspan>
-<tspan x="18" y="801"><tspan fill="#f85149">║ WARNING: 8.8.8.8 (8.8.8.8) is NOT a private/local address. ║</tspan></tspan>
-<tspan x="18" y="820"><tspan fill="#f85149">║ Only scan systems you OWN or have WRITTEN permission to    ║</tspan></tspan>
-<tspan x="18" y="839"><tspan fill="#f85149">║ test. Unauthorized scanning may be illegal.                ║</tspan></tspan>
-<tspan x="18" y="858"><tspan fill="#f85149">╚════════════════════════════════════════════════════════════╝</tspan></tspan>
+<tspan x="26.43" y="801" fill="#f85149"> WARNING: 8.8.8.8 (8.8.8.8) is NOT a private/local address.</tspan>
+<tspan x="26.43" y="820" fill="#f85149"> Only scan systems you OWN or have WRITTEN permission to</tspan>
+<tspan x="26.43" y="839" fill="#f85149"> test. Unauthorized scanning may be illegal.</tspan>
 <tspan x="18" y="877"><tspan fill="#f85149">[-] Refusing to scan a public target without --yes.</tspan></tspan>
-</text></svg>
+</text>
+<rect x="22.21" y="777.50" width="514.23" height="76.00" fill="none" stroke="#f85149" stroke-width="1.2"/>
+<rect x="25.21" y="780.50" width="508.23" height="70.00" fill="none" stroke="#f85149" stroke-width="1.2"/>
+</svg>
