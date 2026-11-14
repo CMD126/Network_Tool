@@ -13,7 +13,7 @@ BINDIR  := $(DESTDIR)$(PREFIX)/bin
 LIBDIR  := $(DESTDIR)$(PREFIX)/lib/networktool
 CFGDIR  := $(HOME)/.config/networktool
 
-SHELL_FILES := networktool.sh lib/*.sh tests/*.sh
+SHELL_FILES := networktool.sh lib/*.sh tests/*.sh docs/*.sh
 
 .PHONY: install uninstall test lint clean
 

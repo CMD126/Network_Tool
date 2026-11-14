@@ -13,6 +13,6 @@ jobs:
       - name: Install bats and shellcheck
         run: sudo apt-get update && sudo apt-get install -y bats shellcheck
       - name: ShellCheck
-        run: shellcheck -S warning networktool.sh lib/*.sh tests/*.sh
+        run: shellcheck -S warning networktool.sh lib/*.sh tests/*.sh docs/*.sh
       - name: Tests
         run: bats tests/
