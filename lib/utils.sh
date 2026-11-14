@@ -326,7 +326,7 @@ json_output() {
     local tool="$1" target="$2" success="$3" data="$4" ts
     ts=$(date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date '+%Y-%m-%dT%H:%M:%SZ')
     printf '{"tool":"%s","target":"%s","success":%s,"data":%s,"timestamp":"%s"}\n' \
-        "$(json_escape "$tool")" "$(json_escape "$target")" "$success" "$data" "$ts"
+        "$(json_escape "$tool")" "$(json_escape "$target")" "$success" "$data" "$ts" >&"${JSON_FD:-1}"
 }
 
 # json_output_raw <tool> <target> <success> <raw_text>

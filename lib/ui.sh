@@ -35,7 +35,8 @@ SYM_INFO='*'
 # These are the ONLY functions feature code should call to talk to the user.
 # They respect $OUTPUT_MODE (human|json) and $QUIET so a single code path
 # works interactively and headlessly:
-#   - json mode:  all human chatter is suppressed (only json_output prints)
+#   - json mode:  all human chatter is suppressed (only json_output prints
+#                 to stdout; err() still reports to stderr)
 #   - quiet mode: info/section/divider/banner suppressed, results still shown
 
 info() {
@@ -55,7 +56,8 @@ warn() {
 }
 
 err() {
-    [[ "$OUTPUT_MODE" == "json" ]] && return 0
+    # Errors go to stderr in every mode (including --json, where stdout is
+    # reserved for JSON) so a failing CLI call never fails silently.
     echo -e "${RED}[${SYM_ERR}]${NC} $*" >&2
 }
 

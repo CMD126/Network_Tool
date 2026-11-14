@@ -23,6 +23,7 @@ CONFIRM_YES=0
 NONINTERACTIVE=0
 OUTPUT_MODE="human"
 QUIET=0
+JSON_FD=1   # where json_output writes; see dispatch_cli
 
 # parse_cli_args <args...>
 #   Args: the script's full argv
@@ -99,6 +100,25 @@ _cli_take_optional_value() {
 #   Args: none (reads $CLI_ACTION and the CLI_* globals)
 #   Returns: the dispatched function's exit code; 1 if no action was set
 dispatch_cli() {
+    # Under --json, stdout must carry nothing but the JSON document(s), so
+    # that `... --json | jq` always works. Feature functions also echo raw
+    # tool output (ping, nmap, dig, ...) for humans; rather than guard every
+    # one of those lines, run the action with stdout sent to /dev/null and
+    # give json_output a private copy of the real stdout on fd 3.
+    if [[ "$OUTPUT_MODE" == "json" && "$CLI_ACTION" != "help" ]]; then
+        local rc=0
+        JSON_FD=3
+        _dispatch_action 3>&1 >/dev/null || rc=$?
+        JSON_FD=1
+        return "$rc"
+    fi
+    _dispatch_action
+}
+
+# _dispatch_action
+#   Args: none (reads $CLI_ACTION and the CLI_* globals)
+#   Returns: the dispatched function's exit code; 1 if no action was set
+_dispatch_action() {
     case "$CLI_ACTION" in
         help)                show_help ;;
         dashboard)           dashboard ;;

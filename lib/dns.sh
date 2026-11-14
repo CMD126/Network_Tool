@@ -83,7 +83,11 @@ ${result}
     get_dns_servers | sed 's/^/  /'
 
     push_result "DNS lookup $domain" "$raw"
-    [[ "$OUTPUT_MODE" == "json" ]] && json_output "dns_lookup" "$domain" "true" "{\"records\":${json_records}}"
+    if [[ "$OUTPUT_MODE" == "json" ]]; then
+        local success=true
+        [[ "$json_records" == "[]" ]] && success=false
+        json_output "dns_lookup" "$domain" "$success" "{\"records\":${json_records}}"
+    fi
 }
 
 # ═════════════════════════════════════════════════════════════════════════════
