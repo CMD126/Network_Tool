@@ -244,11 +244,15 @@ warn_if_public_target() {
         ip=$(resolve_host_to_ip "$host")
     fi
     if [[ -n "$ip" ]] && validate_ip "$ip" && ! is_private_ip "$ip"; then
-        echo -e "${RED}${BOLD}╔══════════════════════════════════════════════════════════╗${NC}"
-        echo -e "${RED}${BOLD}║  WARNING: '$host' ($ip) is NOT a private/local address.   ${NC}"
-        echo -e "${RED}${BOLD}║  Only scan systems you OWN or have WRITTEN permission to  ║${NC}"
-        echo -e "${RED}${BOLD}║  test. Unauthorized scanning may be illegal.               ║${NC}"
-        echo -e "${RED}${BOLD}╚══════════════════════════════════════════════════════════╝${NC}"
+        local line=""
+        echo -e "${RED}${BOLD}╔════════════════════════════════════════════════════════════╗${NC}"
+        for line in "WARNING: $host ($ip) is NOT a private/local address." \
+                    "Only scan systems you OWN or have WRITTEN permission to" \
+                    "test. Unauthorized scanning may be illegal."; do
+            # %-58s pads to the box width; a long hostname just widens the row.
+            printf "${RED}${BOLD}║ %-58s ║${NC}\n" "$line"
+        done
+        echo -e "${RED}${BOLD}╚════════════════════════════════════════════════════════════╝${NC}"
         return 1
     fi
     return 0
