@@ -5,6 +5,10 @@
 # ═════════════════════════════════════════════════════════════════════════════
 
 # shellcheck shell=bash
+# These CLI_* globals are written here and read by the feature modules
+# (lib/network.sh, lib/scan.sh, ...), which ShellCheck checks as separate
+# files, so it cannot see the cross-file use.
+# shellcheck disable=SC2034
 
 CLI_ACTION=""
 CLI_TARGET=""

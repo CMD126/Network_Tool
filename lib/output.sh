@@ -21,7 +21,6 @@ push_result() {
     local label="$1" content="$2"
     RESULT_LABELS+=("$label")
     RESULT_CONTENTS+=("$content")
-    LAST_OUTPUT="$content"
 }
 
 # view_log

@@ -47,7 +47,6 @@ HISTORY_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/networktool/history"
 LOG_FILE="$SCRIPT_DIR/networktool.log"
 RESULTS_FILE="$SCRIPT_DIR/last_result.txt"
 TEMP_DIR=""          # set by setup() via mktemp -d
-LAST_OUTPUT=""
 EXIT_REASON="normal"
 
 # ─── Source modules ────────────────────────────────────────────────────────────

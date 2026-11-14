@@ -3,6 +3,9 @@
 # without bats-core installed. Covers the same helpers as tests/*.bats.
 # Usage: bash tests/run_tests.sh   (or: make test)
 # Exit code: 0 if every assertion passed, 1 otherwise.
+# The globals below are read inside the sourced lib/*.sh files, which
+# ShellCheck checks separately, so it cannot see their use from here.
+# shellcheck disable=SC2034
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

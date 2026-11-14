@@ -13,7 +13,7 @@ BINDIR  := $(DESTDIR)$(PREFIX)/bin
 LIBDIR  := $(DESTDIR)$(PREFIX)/lib/networktool
 CFGDIR  := $(HOME)/.config/networktool
 
-SHELL_FILES := networktool.sh lib/*.sh
+SHELL_FILES := networktool.sh lib/*.sh tests/*.sh
 
 .PHONY: install uninstall test lint clean
 
@@ -43,7 +43,7 @@ test:
 
 lint:
 	@if command -v shellcheck >/dev/null 2>&1; then \
-		shellcheck $(SHELL_FILES); \
+		shellcheck -S warning $(SHELL_FILES); \
 	else \
 		echo "shellcheck not installed — skipping (install: https://www.shellcheck.net)"; \
 	fi

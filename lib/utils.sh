@@ -246,6 +246,9 @@ recent_targets() {
 #   Side effects: reads $CONFIG_FILE (INI-style) and overrides defaults:
 #   ping_count, ports, timeout, color, dns_server, log_file, log_max_size,
 #   log_max_lines, speed_test_endpoints (comma separated).
+# The settings assigned here are read by other modules (see SC2034 note in
+# lib/cli.sh).
+# shellcheck disable=SC2034
 load_config() {
     [[ -f "$CONFIG_FILE" ]] || return 0
     local line="" key="" value=""
@@ -411,7 +414,7 @@ progress_spinner() {
         wait "$pid" 2>/dev/null
         return $?
     fi
-    local frames='|/-\' i=0
+    local frames="|/-\\" i=0
     while kill -0 "$pid" 2>/dev/null; do
         printf '\r%s %s ' "${frames:i++%${#frames}:1}" "$msg" >&2
         sleep 0.15

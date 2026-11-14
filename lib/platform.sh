@@ -179,7 +179,7 @@ platform_ping() {
 platform_ping_df() {
     local host="$1" size="$2"
     case "$OS" in
-        linux)     ping -M do -s "$size" -c1 -W2 "$host" 2>&1 ;;
+        linux)     ping -M "do" -s "$size" -c1 -W2 "$host" 2>&1 ;;
         macos|bsd) ping -D -s "$size" -c1 "$host" 2>&1 ;;
         *)         ping -c1 "$host" 2>&1 ;;
     esac
