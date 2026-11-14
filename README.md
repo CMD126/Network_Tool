@@ -1,5 +1,7 @@
 # Network Tool Pro
 
+[![CI](https://github.com/CMD126/Network_Tool/actions/workflows/ci.yml/badge.svg)](https://github.com/CMD126/Network_Tool/actions/workflows/ci.yml)
+
 A cross-platform (Linux / macOS / BSD) network diagnostics suite with an
 interactive menu **and** a full headless CLI mode with JSON output, covering
 interface analysis, DNS, scanning, web/TLS inspection, and live monitoring.
