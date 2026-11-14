@@ -116,11 +116,21 @@ live_bandwidth() {
         interval=$(prompt "Refresh interval (seconds)" "2")
     fi
 
+    if ! validate_iface "$iface"; then
+        err "Invalid interface name: '$(printable "$iface")'"
+        return 1
+    fi
+    if ! validate_nonneg_int "$samples"; then
+        err "Invalid --samples value: '$(printable "$samples")' (expected an integer >= 0)"
+        return 1
+    fi
+    samples=$(( 10#$samples ))
     if ! iface_stats_exist "$iface"; then
-        err "Interface '$iface' not found or its stats are unavailable on this platform."
+        err "Interface '$(printable "$iface")' not found or its stats are unavailable on this platform."
         return 1
     fi
     validate_positive_int "$interval" || interval=2
+    interval=$(( 10#$interval ))
 
     log "Live bandwidth → $iface"
     info "Monitoring $iface — press Ctrl+C to stop."

@@ -137,6 +137,8 @@ get_iface_bytes() {
             local rx="" tx=""
             rx=$(cat "/sys/class/net/$iface/statistics/rx_bytes" 2>/dev/null) || return 1
             tx=$(cat "/sys/class/net/$iface/statistics/tx_bytes" 2>/dev/null) || return 1
+            # These values feed bash arithmetic; only pass on plain integers.
+            [[ "$rx" =~ ^[0-9]+$ && "$tx" =~ ^[0-9]+$ ]] || return 1
             echo "$rx $tx"
             ;;
         macos|bsd)

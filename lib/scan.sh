@@ -47,11 +47,11 @@ port_scan() {
     fi
 
     if [[ "$host" != "localhost" ]] && ! validate_host "$host"; then
-        err "Invalid host: '$host'"
+        err "Invalid host: '$(printable "$host")'"
         return 1
     fi
     if ! validate_port_range "$ports"; then
-        err "Invalid port range: '$ports'"
+        err "Invalid port range: '$(printable "$ports")'"
         return 1
     fi
     _confirm_public_scan "$host" || return 1
@@ -97,11 +97,11 @@ service_scan() {
     fi
 
     if [[ "$host" != "localhost" ]] && ! validate_host "$host"; then
-        err "Invalid host: '$host'"
+        err "Invalid host: '$(printable "$host")'"
         return 1
     fi
     if ! validate_port_range "$ports"; then
-        err "Invalid port range: '$ports'"
+        err "Invalid port range: '$(printable "$ports")'"
         return 1
     fi
     _confirm_public_scan "$host" || return 1
@@ -152,11 +152,11 @@ vuln_check() {
     fi
 
     if [[ "$host" != "localhost" ]] && ! validate_host "$host"; then
-        err "Invalid host: '$host'"
+        err "Invalid host: '$(printable "$host")'"
         return 1
     fi
     if ! validate_port_range "$ports"; then
-        err "Invalid port range: '$ports'"
+        err "Invalid port range: '$(printable "$ports")'"
         return 1
     fi
     warn_if_public_target "$host" || true   # informational only; consent already gathered above

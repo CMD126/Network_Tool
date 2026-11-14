@@ -29,10 +29,25 @@ detect_os() {
 #   Returns: prints sanitized string on stdout
 #   Side effects: none
 #   Strips shell metacharacters that have no legitimate place in a hostname,
-#   IP, URL, CIDR range or port list: ; | & ` $ ( )
+#   IP, URL, CIDR range or port list: ; | & ` $ ( ) < > and line breaks.
+#   This is defence in depth only: every value is also passed through a
+#   validate_* function and always reaches external commands as a single
+#   quoted argument, never through eval or a shell string.
 sanitize_input() {
     local input="${1:-}"
-    printf '%s' "$input" | tr -d ';|&`$()'
+    # shellcheck disable=SC2016  # the single-quoted set is literal on purpose
+    printf '%s' "$input" | tr -d ';|&`$()<>\n\r'
+}
+
+# printable <string>
+#   Args: $1 = untrusted string (e.g. a rejected CLI argument)
+#   Returns: prints a copy that is safe to show through `echo -e`: control
+#   characters (including ESC, so no terminal escape sequences) become '?'
+#   and backslashes are doubled so echo -e prints them literally.
+printable() {
+    local s=""
+    s=$(printf '%s' "${1:-}" | tr '[:cntrl:]' '?')
+    printf '%s' "${s//\\/\\\\}"
 }
 
 # validate_ip <string>
@@ -43,15 +58,47 @@ validate_ip() {
     if [[ "$ip" =~ ^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$ ]]; then
         local o=""
         for o in "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}" "${BASH_REMATCH[4]}"; do
-            (( o >= 0 && o <= 255 )) || return 1
+            # 10# forces base 10 so "08" is not rejected as a bad octal literal
+            (( 10#$o <= 255 )) || return 1
         done
         return 0
     fi
-    # Loose IPv6 check: hex groups and colons, at least one "::" or enough groups
-    if [[ "$ip" =~ ^[0-9A-Fa-f:]+$ && "$ip" == *:* ]]; then
-        return 0
+    _validate_ipv6 "$ip"
+}
+
+# _validate_ipv6 <string>
+#   Args: $1 = candidate string
+#   Returns: 0 for a plain (non-zoned, non-IPv4-mapped) IPv6 address made of
+#   1-4 digit hex groups: either exactly 8 groups, or at most 7 groups with a
+#   single "::" standing in for the rest. 1 otherwise.
+_validate_ipv6() {
+    local ip="${1:-}" head="" tail="" n=0
+    local -r groups_re='^[0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*$'
+    [[ ${#ip} -ge 2 && ${#ip} -le 39 ]] || return 1
+    if [[ "$ip" == *::* ]]; then
+        head="${ip%%::*}"
+        tail="${ip#*::}"
+        [[ "$tail" == *::* ]] && return 1          # only one "::" allowed
+        if [[ -n "$head" ]]; then
+            [[ "$head" =~ $groups_re ]] || return 1
+            n=$(( n + $(_count_groups "$head") ))
+        fi
+        if [[ -n "$tail" ]]; then
+            [[ "$tail" =~ $groups_re ]] || return 1
+            n=$(( n + $(_count_groups "$tail") ))
+        fi
+        (( n <= 7 ))
+    else
+        [[ "$ip" =~ $groups_re ]] || return 1
+        (( $(_count_groups "$ip") == 8 ))
     fi
-    return 1
+}
+
+# _count_groups <colon-separated list>
+#   Returns: prints the number of ':'-separated fields
+_count_groups() {
+    local colons="${1//[!:]/}"
+    echo $(( ${#colons} + 1 ))
 }
 
 # validate_cidr <string>
@@ -65,7 +112,7 @@ validate_cidr() {
     [[ "$cidr" == */* ]] || return 1
     validate_ip "$ip_part" || return 1
     [[ "$prefix" =~ ^[0-9]{1,2}$ ]] || return 1
-    (( prefix >= 0 && prefix <= 32 )) || return 1
+    (( 10#$prefix <= 32 )) || return 1
     return 0
 }
 
@@ -100,20 +147,59 @@ validate_url() {
     return 1
 }
 
+# validate_port <string>
+#   Args: $1 = candidate TCP/UDP port
+#   Returns: 0 if an integer in 1-65535, 1 otherwise
+validate_port() {
+    [[ "${1:-}" =~ ^[0-9]{1,5}$ ]] && (( 10#$1 >= 1 && 10#$1 <= 65535 ))
+}
+
 # validate_port_range <string>
-#   Args: $1 = port or port range/list (e.g. 80, 1-1000, 22,80,443)
-#   Returns: 0 if syntactically sane, 1 otherwise
+#   Args: $1 = port or port range/list (e.g. 80, 1-1000, 22,80,443-445)
+#   Returns: 0 if every comma-separated item is a port or an ascending
+#   LOW-HIGH range of ports in 1-65535; 1 otherwise (empty items, "-",
+#   open-ended ranges such as "-100" or "80-", or ports above 65535).
 validate_port_range() {
-    local p="${1:-}"
-    [[ "$p" =~ ^[0-9,-]+$ ]] && return 0
-    return 1
+    local p="${1:-}" item="" lo="" hi=""
+    local -a items=()
+    [[ "$p" =~ ^[0-9]+(-[0-9]+)?(,[0-9]+(-[0-9]+)?)*$ ]] || return 1
+    IFS=',' read -r -a items <<< "$p"
+    for item in "${items[@]}"; do
+        lo="${item%-*}"
+        hi="${item#*-}"
+        validate_port "$lo" && validate_port "$hi" || return 1
+        (( 10#$lo <= 10#$hi )) || return 1
+    done
+    return 0
 }
 
 # validate_positive_int <string>
 #   Args: $1 = candidate
 #   Returns: 0 if a positive integer, 1 otherwise
+#   Use this (and a 10# normalisation) before any untrusted value reaches
+#   bash arithmetic: (( )), $(( )) and [[ -gt ]] evaluate a string such as
+#   'x[$(cmd)]' as an expression and would run cmd.
 validate_positive_int() {
-    [[ "${1:-}" =~ ^[0-9]+$ ]] && (( 10#${1} > 0 ))
+    [[ "${1:-}" =~ ^[0-9]{1,18}$ ]] && (( 10#${1} > 0 ))
+}
+
+# validate_nonneg_int <string>
+#   Args: $1 = candidate
+#   Returns: 0 if an integer >= 0 (at most 18 digits), 1 otherwise
+validate_nonneg_int() {
+    [[ "${1:-}" =~ ^[0-9]{1,18}$ ]]
+}
+
+# validate_iface <string>
+#   Args: $1 = candidate network interface name (eth0, en0, wlp2s0, utun3...)
+#   Returns: 0 if it is a plausible interface name, 1 otherwise. Rejects '/',
+#   '..' and a leading '-', since the name is used to build a /sys path and
+#   is passed to netstat/awk.
+validate_iface() {
+    local i="${1:-}"
+    [[ "$i" =~ ^[A-Za-z0-9][A-Za-z0-9_.:@-]{0,31}$ ]] || return 1
+    [[ "$i" == *..* ]] && return 1
+    return 0
 }
 
 # require_valid <value> <validator_fn> <label>
@@ -122,7 +208,7 @@ validate_positive_int() {
 require_valid() {
     local value="$1" validator="$2" label="$3"
     if ! "$validator" "$value"; then
-        err "Invalid ${label}: '${value}'"
+        err "Invalid ${label}: '$(printable "$value")'"
         return 1
     fi
     return 0
@@ -263,19 +349,62 @@ load_config() {
         value="${line#*=}"
         key="$(printf '%s' "$key" | sed -e 's/[[:space:]]*$//')"
         value="$(printf '%s' "$value" | sed -e 's/^[[:space:]]*//')"
+        # Numeric settings end up in bash arithmetic and in command
+        # arguments, so each value is validated before it replaces a default;
+        # an invalid value is reported and the default is kept.
         case "$key" in
-            ping_count)            DEFAULT_PING_COUNT="$value" ;;
-            ports)                 DEFAULT_PORTS="$value" ;;
-            timeout)                DEFAULT_TIMEOUT="$value" ;;
+            ping_count)            _config_set "$key" "$value" validate_positive_int DEFAULT_PING_COUNT ;;
+            ports)                 _config_set "$key" "$value" validate_port_range DEFAULT_PORTS ;;
+            timeout)               _config_set "$key" "$value" validate_positive_int DEFAULT_TIMEOUT ;;
             color)                 [[ "$value" =~ ^(0|false|off|no)$ ]] && COLOR_ENABLED=0 ;;
             colorblind_safe)       [[ "$value" =~ ^(1|true|on|yes)$ ]] && COLORBLIND_SAFE=1 ;;
-            dns_server)            PREFERRED_DNS="$value" ;;
+            dns_server)            [[ -z "$value" ]] || _config_set "$key" "$value" validate_ip PREFERRED_DNS ;;
             log_file)              LOG_FILE="$value" ;;
-            log_max_size)          MAX_LOG_SIZE="$value" ;;
-            log_max_lines)         MAX_LOG_LINES="$value" ;;
-            speed_test_endpoints)  IFS=',' read -r -a SPEEDTEST_ENDPOINTS <<< "$value" ;;
+            log_max_size)          _config_set "$key" "$value" validate_positive_int MAX_LOG_SIZE ;;
+            log_max_lines)         _config_set "$key" "$value" validate_positive_int MAX_LOG_LINES ;;
+            speed_test_endpoints)  _config_set_endpoints "$value" ;;
         esac
     done < "$CONFIG_FILE"
+}
+
+# _config_set <key> <value> <validator_fn> <var_name>
+#   Args: config key (for the message), raw value, validation function, name
+#   of the global to assign
+#   Returns: 0; assigns <var_name> only if <validator_fn> accepts the value,
+#   otherwise prints a warning to stderr. Integers are normalised to base 10
+#   so a value like "010" cannot be read as octal later.
+_config_set() {
+    local key="$1" value="$2" validator="$3" var="$4"
+    if "$validator" "$value"; then
+        [[ "$value" =~ ^[0-9]+$ ]] && value=$(( 10#$value ))
+        printf -v "$var" '%s' "$value"
+    else
+        printf 'networktool: ignoring invalid %s in %s: %s\n' \
+            "$key" "$CONFIG_FILE" "$(printable "$value")" >&2
+    fi
+}
+
+# _config_set_endpoints <comma-separated URLs>
+#   Returns: 0; replaces SPEEDTEST_ENDPOINTS with the http(s) URLs from the
+#   list, skipping (and reporting) anything that is not a valid URL. Keeps
+#   the defaults if no entry is valid.
+# shellcheck disable=SC2034  # SPEEDTEST_ENDPOINTS is read in lib/monitor.sh
+_config_set_endpoints() {
+    local -a entries=() good=()
+    local u=""
+    IFS=',' read -r -a entries <<< "$1"
+    for u in "${entries[@]}"; do
+        u="$(printf '%s' "$u" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+        [[ -z "$u" ]] && continue
+        if validate_url "$u"; then
+            good+=("$u")
+        else
+            printf 'networktool: ignoring invalid speed_test_endpoints entry in %s: %s\n' \
+                "$CONFIG_FILE" "$(printable "$u")" >&2
+        fi
+    done
+    [[ ${#good[@]} -gt 0 ]] && SPEEDTEST_ENDPOINTS=("${good[@]}")
+    return 0
 }
 
 # write_default_config
@@ -314,6 +443,9 @@ json_escape() {
     s="${s//\"/\\\"}"
     s="${s//$'\t'/\\t}"
     s="${s//$'\r'/}"
+    # Any other control character (ESC from coloured tool output, NUL, form
+    # feed, ...) is invalid inside a JSON string; drop it.
+    s="$(printf '%s' "$s" | tr -d '\000-\010\013\014\016-\037\177')"
     s="$(printf '%s' "$s" | awk '{printf "%s\\n", $0}')"
     s="${s%\\n}"
     printf '%s' "$s"

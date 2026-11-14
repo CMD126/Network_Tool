@@ -39,6 +39,7 @@ dashboard() {
     else
         echo "  (could not determine — check /etc/resolv.conf)"
     fi
+    [[ -n "$PREFERRED_DNS" ]] && echo "  Preferred (config dns_server): $PREFERRED_DNS"
 
     section "Connectivity"
     # Ping all targets in parallel (background jobs + wait) rather than serially.
@@ -165,7 +166,7 @@ local_discovery() {
     fi
 
     if ! validate_cidr "$subnet"; then
-        err "Invalid CIDR: '$subnet'"
+        err "Invalid CIDR: '$(printable "$subnet")'"
         return 1
     fi
 
@@ -205,10 +206,11 @@ ping_host() {
     fi
 
     if ! validate_host "$host"; then
-        err "Invalid host: '$host'"
+        err "Invalid host: '$(printable "$host")'"
         return 1
     fi
     validate_positive_int "$count" || count="$DEFAULT_PING_COUNT"
+    count=$(( 10#$count ))   # "010" -> 10, so the JSON "count" stays a valid number
 
     log "Ping $host x$count"
     section "Ping → $host"
@@ -249,7 +251,7 @@ trace_route() {
     fi
 
     if ! validate_host "$host"; then
-        err "Invalid host: '$host'"
+        err "Invalid host: '$(printable "$host")'"
         return 1
     fi
 
@@ -294,7 +296,7 @@ mtu_discovery() {
     fi
 
     if ! validate_host "$host"; then
-        err "Invalid host: '$host'"
+        err "Invalid host: '$(printable "$host")'"
         return 1
     fi
 

@@ -79,8 +79,13 @@ source "$LIB_DIR/monitor.sh"
 #   history/config directories exist, writes a default config if absent,
 #   installs EXIT/INT/TERM traps.
 setup() {
-    TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/nettool.XXXXXX" 2>/dev/null)" || TEMP_DIR="${TMPDIR:-/tmp}/nettool_$$"
-    mkdir -p "$TEMP_DIR" 2>/dev/null
+    # No predictable fallback name (e.g. /tmp/nettool_$$): another local user
+    # could pre-create it or plant a symlink there. If mktemp fails, stop.
+    if ! TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/nettool.XXXXXX" 2>/dev/null)"; then
+        TEMP_DIR=""
+        echo "networktool: could not create a private temp directory" >&2
+        exit 1
+    fi
     mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null
     touch "$LOG_FILE" 2>/dev/null
     mkdir -p "$(dirname "$HISTORY_FILE")" 2>/dev/null

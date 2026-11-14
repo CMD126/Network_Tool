@@ -71,7 +71,7 @@ export_result() {
     idx="${idx:-$count}"
 
     if ! [[ "$idx" =~ ^[0-9]+$ ]] || (( idx < 1 || idx > count )); then
-        err "Invalid index: '$idx' (valid range: 1-$count)"
+        err "Invalid index: '$(printable "$idx")' (valid range: 1-$count)"
         return 1
     fi
 

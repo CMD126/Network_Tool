@@ -89,6 +89,25 @@ echo "== validate_port_range =="
 validate_port_range "22,80,443"; assert_status "accepts comma list" 0 $?
 validate_port_range "1-1000"; assert_status "accepts dash range" 0 $?
 validate_port_range "ab,cd"; assert_status "rejects letters" 1 $?
+validate_port_range "1-70000"; assert_status "rejects ports above 65535" 1 $?
+validate_port_range "80,"; assert_status "rejects an empty list item" 1 $?
+validate_port_range "-"; assert_status "rejects a bare dash" 1 $?
+
+echo "== IPv6 / interface names =="
+validate_ip "2001:db8::1"; assert_status "accepts compressed IPv6" 0 $?
+validate_ip ":::"; assert_status "rejects colon-only IPv6" 1 $?
+validate_iface "eth0"; assert_status "accepts eth0" 0 $?
+validate_iface "../../tmp"; assert_status "rejects path traversal" 1 $?
+
+echo "== config values reaching arithmetic =="
+CONFIG_FILE="$TMP/config.ini"
+printf 'log_max_size = OS[$(touch %s)]\n' "$TMP/injected" > "$CONFIG_FILE"
+detect_os
+load_config 2>/dev/null
+log "rotation check"
+assert_true "arithmetic payload in config is never evaluated" "$([[ -e "$TMP/injected" ]] && echo 0 || echo 1)"
+assert_eq "invalid config value keeps the default" "5242880" "$MAX_LOG_SIZE"
+CONFIG_FILE="/dev/null"
 
 echo "== validate_positive_int =="
 validate_positive_int "5"; assert_status "accepts 5" 0 $?
@@ -96,9 +115,9 @@ validate_positive_int "0"; assert_status "rejects 0" 1 $?
 validate_positive_int "abc"; assert_status "rejects non-numeric" 1 $?
 
 echo "== sanitize_input =="
-result="$(sanitize_input 'host; rm -rf / $(evil) `bad` a|b&c')"
+result="$(sanitize_input 'host; rm -rf / $(evil) `bad` a|b&c >x <y')"
 bad=0
-for ch in ';' '|' '&' '`' '$' '(' ')'; do
+for ch in ';' '|' '&' '`' '$' '(' ')' '<' '>'; do
     [[ "$result" == *"$ch"* ]] && bad=1
 done
 assert_true "strips all shell metacharacters" "$((1 - bad))"

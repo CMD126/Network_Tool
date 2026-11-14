@@ -71,7 +71,7 @@ parse_cli_args() {
             --quiet)          QUIET=1 ;;
             --no-color)       COLOR_ENABLED=0 ;;
             *)
-                echo "Unknown argument: '$1'" >&2
+                echo "Unknown argument: '$(printable "$1")'" >&2
                 CLI_ACTION="help"
                 ;;
         esac

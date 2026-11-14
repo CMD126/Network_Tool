@@ -21,7 +21,7 @@ dns_lookup() {
     fi
 
     if ! validate_domain "$domain"; then
-        err "Invalid domain: '$domain'"
+        err "Invalid domain: '$(printable "$domain")'"
         return 1
     fi
 
@@ -103,7 +103,7 @@ reverse_dns() {
     fi
 
     if ! validate_ip "$ip"; then
-        err "Invalid IP address: '$ip'"
+        err "Invalid IP address: '$(printable "$ip")'"
         return 1
     fi
 
@@ -156,7 +156,7 @@ whois_lookup() {
     fi
 
     if ! validate_host "$target"; then
-        err "Invalid domain or IP: '$target'"
+        err "Invalid domain or IP: '$(printable "$target")'"
         return 1
     fi
 

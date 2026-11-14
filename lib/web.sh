@@ -50,7 +50,7 @@ http_check() {
     [[ "$url" != http* ]] && url="https://$url"
 
     if ! validate_url "$url"; then
-        err "Invalid URL: '$url'"
+        err "Invalid URL: '$(printable "$url")'"
         return 1
     fi
 
@@ -106,10 +106,11 @@ ssl_cert() {
     fi
 
     if ! validate_host "$host"; then
-        err "Invalid hostname: '$host'"
+        err "Invalid hostname: '$(printable "$host")'"
         return 1
     fi
-    validate_positive_int "$port" || port=443
+    validate_port "$port" || port=443
+    port=$(( 10#$port ))
 
     log "SSL check → $host:$port"
     section "SSL Certificate → $host:$port"
@@ -190,7 +191,7 @@ geolocate() {
         ip=$(curl -s --max-time 5 https://api.ipify.org 2>/dev/null)
     fi
     if ! validate_ip "$ip"; then
-        err "Invalid IP address: '$ip'"
+        err "Invalid IP address: '$(printable "$ip")'"
         return 1
     fi
 
