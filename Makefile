@@ -20,7 +20,7 @@ SHELL_FILES := networktool.sh lib/*.sh tests/*.sh docs/*.sh
 install:
 	install -d "$(LIBDIR)/lib"
 	install -m 0755 networktool.sh "$(LIBDIR)/networktool.sh"
-	install -m 0644 lib/*.sh "$(LIBDIR)/lib/"
+	install -m 0644 lib/*.sh lib/*.py "$(LIBDIR)/lib/"
 	install -d "$(BINDIR)"
 	printf '#!/usr/bin/env bash\nexec "%s/networktool.sh" "$$@"\n' "$(LIBDIR)" > "$(BINDIR)/networktool"
 	chmod 0755 "$(BINDIR)/networktool"
@@ -34,6 +34,7 @@ uninstall:
 	@echo "Uninstalled. Config left in place at $(CFGDIR) (remove manually if desired)."
 
 test:
+	python3 -m unittest discover -s tests -p 'test_nse*.py'
 	@if command -v bats >/dev/null 2>&1; then \
 		bats tests/; \
 	else \

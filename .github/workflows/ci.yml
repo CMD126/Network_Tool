@@ -14,5 +14,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y bats shellcheck
       - name: ShellCheck
         run: shellcheck -S warning networktool.sh lib/*.sh tests/*.sh docs/*.sh
+      - name: NSE XML parser tests
+        run: python3 -m unittest discover -s tests -p 'test_nse*.py'
       - name: Tests
         run: bats tests/

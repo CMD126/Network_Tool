@@ -164,13 +164,27 @@ vuln_check() {
     log "Vuln check → $host:$ports"
     section "Vulnerability Check → $host"
 
-    local raw=""
-    raw=$(run_with_spinner "Running NSE scripts against $host..." \
-        nmap -sV --script=vuln,auth,default -p "$ports" --script-timeout 30s --host-timeout 120s "$host")
+    # Structured NSE states avoid counting prose such as "NOT VULNERABLE".
+    # Python is required only for this check, not for the other diagnostics.
+    if ! need python3; then return 1; fi
+    local raw="" xml_file="" vuln_count=""
+    xml_file=$(mktemp "$TEMP_DIR/nse.XXXXXX") || return 1
+    if ! raw=$(run_with_spinner "Running NSE scripts against $host..." \
+        nmap -sV --script=vuln,auth,default -p "$ports" --script-timeout 30s --host-timeout 120s -oX "$xml_file" "$host"); then
+        rm -f "$xml_file"
+        err "NSE scan failed; no finding count is available."
+        [[ "$OUTPUT_MODE" == "json" ]] && json_output "vuln_check" "$host" "false" '{"error":"NSE scan failed"}'
+        return 1
+    fi
+    if ! vuln_count=$(python3 "$LIB_DIR/nse_findings.py" "$xml_file"); then
+        rm -f "$xml_file"
+        err "Nmap XML was incomplete or invalid; no finding count is available."
+        [[ "$OUTPUT_MODE" == "json" ]] && json_output "vuln_check" "$host" "false" '{"error":"Invalid or incomplete Nmap XML"}'
+        return 1
+    fi
+    rm -f "$xml_file"
     echo "$raw" | grep -v "^|  $" | head -80
-
-    local vuln_count=""
-    vuln_count=$(echo "$raw" | grep -ciE 'VULNERABLE')
     push_result "Vuln check $host — $vuln_count possible finding(s)" "$raw"
     [[ "$OUTPUT_MODE" == "json" ]] && json_output "vuln_check" "$host" "true" "{\"possible_findings\":${vuln_count}}"
+    return 0
 }
