@@ -377,6 +377,7 @@ first run from [config/config.ini.example](config/config.ini.example)).
 | `color` | `on` | Set `off` to disable ANSI colors |
 | `colorblind_safe` | `off` | Reserved, `+`/`-`/`!`/`*` symbols are already always shown alongside color |
 | `dns_server` | *(empty)* | Informational preferred DNS server note |
+| `log_file` | `networktool.log` next to the script | Path of the log file |
 | `log_max_size` | `5242880` | Log rotation size threshold (bytes) |
 | `log_max_lines` | `1000` | Log rotation line-count threshold |
 | `speed_test_endpoints` | Hetzner/Bouygues mirrors | Comma-separated direct-download URLs |
