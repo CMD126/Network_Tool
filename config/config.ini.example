@@ -30,7 +30,10 @@ colorblind_safe = off
 # system resolver used by dig/nslookup)
 dns_server =
 
-# Log rotation thresholds — whichever is hit first triggers rotation
+# Log file path (default: networktool.log next to the script)
+# log_file = /path/to/networktool.log
+
+# Log rotation thresholds - whichever is hit first triggers rotation
 log_max_size = 5242880
 log_max_lines = 1000
 
