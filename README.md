@@ -42,9 +42,10 @@ IP is refused before any packet is sent.
   numbers are checked before they reach bash arithmetic (which would otherwise
   execute `$(...)` hidden in a value); targets are always passed as single
   quoted arguments, never through `eval`. See [SECURITY.md](SECURITY.md).
-- **Tested contract:** 52 [bats](https://github.com/bats-core/bats-core) tests,
+- **Tested contract:** 56 [bats](https://github.com/bats-core/bats-core) tests,
   including end-to-end checks that `--json` output parses as JSON and
-  regression tests for each input-validation fix, plus a dependency-free
+  regression tests for each input-validation fix, seven Python XML-parser tests,
+  plus a dependency-free
   fallback runner (`tests/run_tests.sh`).
 - **CI on every push:** ShellCheck at warning level (zero warnings) and the
   full test suite on GitHub Actions.
@@ -119,8 +120,8 @@ cd Network_Tool
 - `traceroute` or `tracepath`, hop-by-hop path
 - `dig` / `nslookup` / `host`, DNS lookups (at least one required)
 - `whois`, domain/IP registration info (falls back to an RDAP HTTP lookup)
-- `python3`, nicer geolocation/RDAP JSON formatting (optional; falls back to
-  a `grep`-based parser)
+- `python3`, required for the NSE vulnerability check XML parser; also improves
+  geolocation/RDAP JSON formatting (those checks have a fallback)
 - `lsof`, process names in listening-port/connection lists on macOS/BSD
 - GNU coreutils `timeout`/`gtimeout`, bounds the SSL check; the tool still
   works without it, just without a hard timeout
@@ -206,6 +207,14 @@ Global flags: `--json`, `--quiet`, `--no-color`, `--count N`, `--ports RANGE`,
 `--vuln-check` and a non-private `--port-scan`/`--service-scan` target always
 require explicit consent, interactively via a `[y/N]` prompt, or in CLI mode
 via `--yes`. Without it the scan is refused.
+
+The vulnerability check counts structured NSE `state` values of `VULNERABLE`
+or `LIKELY VULNERABLE`, one finding per structured vulnerability table. Text-only scripts
+without structured states remain visible in the scan output but are not counted.
+This is a count of NSE reports, not unique CVEs or independently verified
+exploitability. A successful zero count does not establish that a host is secure.
+Nmap failures, incomplete runs and malformed XML return an error, not a clean
+zero-finding result.
 
 #### JSON output
 
@@ -328,6 +337,8 @@ tests/test_utils.bats   Unit tests: validators, sanitizer, JSON helpers
 tests/test_security.bats  Regression tests for input-handling hardening
 tests/test_cli.bats     End-to-end CLI tests (JSON contract, rejected input)
 tests/test_web.bats     Certificate date parsing
+tests/test_scan.bats    Offline NSE CLI regressions
+tests/test_nse_findings.py Structured XML parser regressions
 tests/run_tests.sh      Fallback runner when bats is not installed
 docs/                   Demo recording script, transcript and SVG
 Makefile

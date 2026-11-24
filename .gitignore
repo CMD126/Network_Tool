@@ -20,3 +20,7 @@ Thumbs.db
 *~
 *.orig
 *.bak
+
+# Python NSE XML parser test cache
+__pycache__/
+*.py[cod]
