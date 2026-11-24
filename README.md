@@ -346,7 +346,7 @@ Created by [@lexlucas](https://github.com/CMD126).
 | **4** | Local Discovery | nmap ping sweep of a subnet to find live hosts and MACs |
 | **5** | Ping | ICMP test with configurable packet count |
 | **6** | Traceroute | Hop-by-hop path (falls back to `tracepath`) |
-| **7** | MTU Discovery | Probes common MTU sizes (1500 → 576) with DF-bit ping |
+| **7** | MTU Discovery | Probes common MTU sizes (1500 down to 576) with DF-bit ping |
 | **8** | DNS Lookup | A, AAAA, MX, NS, TXT records + configured DNS servers |
 | **9** | Reverse DNS | PTR lookup for any IP |
 | **10** | Whois | Domain/IP registration (falls back to an RDAP HTTP lookup if `whois` isn't installed) |
@@ -388,7 +388,7 @@ the built-in defaults.
 
 - **Cross-platform**: every OS-specific command (`ip` vs `ifconfig`/`route`,
   `ss` vs `netstat`/`lsof`, `/sys/class/net` vs `netstat -ib`, ping flags,
-  MTU/DF-bit probing, …) is abstracted behind [lib/platform.sh](lib/platform.sh)
+  MTU/DF-bit probing and so on) is abstracted behind [lib/platform.sh](lib/platform.sh)
   so the same feature code serves Linux and macOS/BSD. CI runs on Ubuntu; the
   macOS/BSD branches are not exercised by CI.
 - **CLI / headless mode**: every menu item is also a flag, see
@@ -418,7 +418,7 @@ the built-in defaults.
 
 - **`dns_lookup()`**: `dig`'s positional syntax is `dig NAME TYPE`, not
   `dig TYPE NAME`, the old code silently returned nothing.
-- **`whois_lookup()` RDAP fallback**: the domain was mangled (`.` → `DOT`)
+- **`whois_lookup()` RDAP fallback**: the domain was mangled (`.` replaced by `DOT`)
   before being sent to `rdap.org`, which meant the fallback could never
   succeed; the real domain is now passed through (and redirects are followed).
 - **`trace_route()`**: now captures the output of whichever tool actually
