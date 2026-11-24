@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/banner.svg" alt="Network Tool Pro: network diagnostics suite" width="100%">
+</p>
+
 # Network Tool Pro
 
 [![CI](https://github.com/CMD126/Network_Tool/actions/workflows/ci.yml/badge.svg)](https://github.com/CMD126/Network_Tool/actions/workflows/ci.yml)
